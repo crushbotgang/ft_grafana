@@ -12,16 +12,14 @@
       "chat_id":""
    },
    "api_server":{
-	  "enable_openapi":true,
+      "enable_openapi":true,
       "enabled":true,
       "listen_ip_address":"0.0.0.0",
-      "listen_port":8083,
+      "listen_port":8080,
       "verbosity":"error",
-      "jwt_secret_key":"6866a51d820a7579e44365b3fca11f19df932e6b32c4ae87222d985a4dd5a67c",
-      "CORS_origins":[
-         
-      ],
-      "username":"freqtrader",
-      "password":"secret"
+      "jwt_secret_key":"OVERRIDE_THIS_WITH_SOME_CONFIG",
+      "CORS_origins":[],
+      "username":"OVERRIDE_THIS_WITH_SOME_CONFIG",
+      "password":"OVERRIDE_THIS_WITH_SOME_CONFIG"
    }
 }

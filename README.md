@@ -31,6 +31,8 @@ docker-compose-grafana.yml
 
 > Follow the instrucions https://www.freqtrade.io/en/stable/docker_quickstart/ copy the files from this repo to ft_userdata
 
+setup .env file and create symlink for your secrets
+
 Deploy Containers
 > docker-compose -f docker-compose-grafana.yml up
 

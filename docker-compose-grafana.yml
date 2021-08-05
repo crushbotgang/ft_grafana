@@ -1,4 +1,4 @@
-version: "3"
+version: "3.7"
 volumes:
     prometheus_data: {}
     grafana_data: {}    
@@ -10,18 +10,20 @@ services:
     container_name: freqtrade1
     restart: on-failure
     ports:
-      - 8081:8081
+      - 14081:8080
     volumes:
       - ./user_data:/freqtrade/user_data
+      - ${FT_SECRETS}:/freqtrade/user_data/secrets
     command: >
       trade 
       --logfile /freqtrade/user_data/logs/freqtrade_1.log
       --db-url sqlite:////freqtrade/user_data/dev_1.sqlite
       --config /freqtrade/user_data/config.json
       --config /freqtrade/user_data/dev_env/config_dev_1.json
+      --config /freqtrade/user_data/secrets/default-api_server.json
       --strategy Combined_NFIv6_SMA
     healthcheck:
-      test: ["CMD-SHELL", "python3 /freqtrade/scripts/rest_client.py --config /freqtrade/user_data/config.json --config /freqtrade/user_data/dev_env/config_dev_1.json ping | grep -q pong"]
+      test: ["CMD-SHELL", "python3 /freqtrade/scripts/rest_client.py --config /freqtrade/user_data/config.json --config /freqtrade/user_data/secrets/default-api_server-self.json ping | grep -q pong"]
       interval: 30s
       timeout: 4s
       retries: 3
@@ -32,18 +34,20 @@ services:
     container_name: freqtrade2
     restart: on-failure
     ports:
-      - 8082:8082
+      - 14082:8080
     volumes:
       - ./user_data:/freqtrade/user_data
+      - ${FT_SECRETS}:/freqtrade/user_data/secrets
     command: >
       trade 
       --logfile /freqtrade/user_data/logs/freqtrade_2.log
       --db-url sqlite:////freqtrade/user_data/dev_2.sqlite
       --config /freqtrade/user_data/config.json
       --config /freqtrade/user_data/dev_env/config_dev_2.json
+      --config /freqtrade/user_data/secrets/default-api_server.json
       --strategy BigZ04
     healthcheck:
-      test: ["CMD-SHELL", "python3 /freqtrade/scripts/rest_client.py --config /freqtrade/user_data/config.json --config /freqtrade/user_data/dev_env/config_dev_2.json ping | grep -q pong"]
+      test: ["CMD-SHELL", "python3 /freqtrade/scripts/rest_client.py --config /freqtrade/user_data/config.json --config /freqtrade/user_data/secrets/default-api_server-self.json ping | grep -q pong"]
       interval: 30s
       timeout: 4s
       retries: 3
@@ -54,38 +58,40 @@ services:
     container_name: freqtrade3
     restart: on-failure
     ports:
-      - 8083:8083
+      - 14083:8080
     volumes:
       - ./user_data:/freqtrade/user_data
+      - ${FT_SECRETS}:/freqtrade/user_data/secrets
     command: >
       trade 
       --logfile /freqtrade/user_data/logs/freqtrade_3.log
       --db-url sqlite:////freqtrade/user_data/dev_3.sqlite
       --config /freqtrade/user_data/config.json
       --config /freqtrade/user_data/dev_env/config_dev_3.json
+      --config /freqtrade/user_data/secrets/default-api_server.json
       --strategy CombinedBinHClucAndMADV9
     healthcheck:
-      test: ["CMD-SHELL", "python3 /freqtrade/scripts/rest_client.py --config /freqtrade/user_data/config.json --config /freqtrade/user_data/dev_env/config_dev_3.json ping | grep -q pong"]
+      test: ["CMD-SHELL", "python3 /freqtrade/scripts/rest_client.py --config /freqtrade/user_data/config.json --config /freqtrade/user_data/secrets/default-api_server-self.json ping | grep -q pong"]
       interval: 30s
       timeout: 4s
       retries: 3
   ftmetric1:
-    image: ghcr.io/kamontat/ftmetric:v4.3.0
+    image: ghcr.io/kamontat/ftmetric:v4.5.1
     container_name: ftmetric1
     restart: on-failure
     ports:
-      - 8091:8091
+      - 14091:14091
     environment:
-      - FTH_FREQTRADE__URL=http://freqtrade1:8081
-      - FTH_FREQTRADE__USERNAME=freqtrader
-      - FTH_FREQTRADE__PASSWORD=secret
-      - FTH_SERVER__PORT=8091
+      - FTH_FREQTRADE__URL=${FTH_FREQTRADE_HOST}:14082/
+      - FTH_FREQTRADE__USERNAME=${FTH_FREQTRADE__USERNAME}
+      - FTH_FREQTRADE__PASSWORD=${FTH_FREQTRADE__PASSWORD}
+      - FTH_SERVER__PORT=14091
       - FTH_FREQTRADE__CLUSTER=1A
     command: --no-env-file
     depends_on:
       - freqtrade1
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8091/version"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://gang:14091/version"]
       interval: 1m
       timeout: 1s
       retries: 3
@@ -94,18 +100,18 @@ services:
     container_name: ftmetric2
     restart: on-failure
     ports:
-      - 8092:8092    
+      - 14092:14092    
     environment:
-      - FTH_FREQTRADE__URL=http://freqtrade2:8082
-      - FTH_FREQTRADE__USERNAME=freqtrader
-      - FTH_FREQTRADE__PASSWORD=secret
-      - FTH_SERVER__PORT=8092
+      - FTH_FREQTRADE__URL=http://192.168.178.100:14082/
+      - FTH_FREQTRADE__USERNAME=${FTH_FREQTRADE__USERNAME}
+      - FTH_FREQTRADE__PASSWORD=${FTH_FREQTRADE__PASSWORD}
+      - FTH_SERVER__PORT=14092
       - FTH_FREQTRADE__CLUSTER=2A
     command: --no-env-file
     depends_on:
       - freqtrade2
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8092/version"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://gang:14092/version"]
       interval: 1m
       timeout: 1s
       retries: 3
@@ -114,18 +120,18 @@ services:
     container_name: ftmetric3
     restart: on-failure
     ports:
-      - 8093:8093    
+      - 14093:14093    
     environment:
-      - FTH_FREQTRADE__URL=http://freqtrade3:8083
-      - FTH_FREQTRADE__USERNAME=freqtrader
-      - FTH_FREQTRADE__PASSWORD=secret
-      - FTH_SERVER__PORT=8093
+      - FTH_FREQTRADE__URL=http://192.168.178.100:14083
+      - FTH_FREQTRADE__USERNAME=${FTH_FREQTRADE__USERNAME}
+      - FTH_FREQTRADE__PASSWORD=${FTH_FREQTRADE__PASSWORD}
+      - FTH_SERVER__PORT=14093
       - FTH_FREQTRADE__CLUSTER=3A
     command: --no-env-file
     depends_on:
       - freqtrade3
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8093/version"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://gang:14093/version"]
       interval: 1m
       timeout: 1s
       retries: 3
@@ -135,7 +141,7 @@ services:
     container_name: prometheus
     # be aware before open the port
     ports:
-       - 9090:9090
+       - 14090:9090
     volumes:
       # you can config prometheus via this directory (prometheus.yml)
        - ./prometheus/config:/etc/prometheus/
@@ -144,12 +150,15 @@ services:
       - ftmetric1
       - ftmetric2
       - ftmetric3            
+    links:
+      - cadvisor:cadvisor
+      - node-exporter:node-exporter
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://gang:14090/-/healthy"]
       interval: 1m
       timeout: 1s
       retries: 3
@@ -158,7 +167,7 @@ services:
     container_name: grafana
     restart: on-failure
     ports:
-      - 3000:3000
+      - 14000:14000
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
@@ -166,15 +175,42 @@ services:
     depends_on:  
       - prometheus
     environment:
-      ## override server url
-      # - GF_SERVER_ROOT_URL=http://example.com
-      - GF_SERVER_HTTP_PORT=3000
-      ## enabled grafana beta alert manager
-      # - GF_FEATURE_TOGGLES_ENABLE=ngalert
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=verygrafanapassword
+      - GF_SERVER_ROOT_URL=http://gang
+      - GF_SERVER_HTTP_PORT=14000
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_FEATURE_TOGGLES_ENABLE=ngalert
+      - GF_SECURITY_ADMIN_USER=${FTH_FREQTRADE__USERNAME}
+      - GF_SECURITY_ADMIN_PASSWORD=${FTH_FREQTRADE__PASSWORD}
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
-      interval: 1m
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://gang:14000/api/health"]
+      interval: 15s
       timeout: 1s
       retries: 3
+  
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: monitoring_node_exporter
+    restart: unless-stopped
+    expose:
+      - 9100
+
+  cadvisor:
+    image: google/cadvisor:latest
+    command: ["-docker_only"]
+    container_name: monitoring_cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /etc/machine-id:/etc/machine-id
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    expose:
+      - 8080
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/cadvisor/healthz || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 0

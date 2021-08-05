@@ -1,0 +1,10 @@
+{
+    "api_server": {
+        "enabled": true,
+        "jwt_secret_key": "CHANGETHISKEY",
+        "username": "CHANGETHISUSER",
+        "password": "CHANGETHISPASSWORD",
+        "listen_ip_address": "0.0.0.0"
+    },
+    "forcebuy_enable": true
+}

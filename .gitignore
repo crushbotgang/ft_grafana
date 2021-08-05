@@ -1,2 +1,5 @@
 *.sqlite
 *.log
+user_data/logs/*
+user_data/secrets
+.env

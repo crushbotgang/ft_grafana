@@ -5,12 +5,16 @@ scrape_configs:
   - job_name: freqtrade1
     static_configs:
       - targets:
-        - "ftmetric1:8091"
+        - "ftmetric1:14091"
   - job_name: freqtrade2
     static_configs:
       - targets:
-        - "ftmetric2:8092"
+        - "ftmetric2:14092"
   - job_name: freqtrade3
     static_configs:
       - targets:
-        - "ftmetric3:8093"
+        - "ftmetric3:14093"
+  - job_name: 'prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['localhost:9090','cadvisor:8080','node-exporter:9100']
